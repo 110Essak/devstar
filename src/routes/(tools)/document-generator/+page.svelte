@@ -1,306 +1,125 @@
 <script>
-    import { writable } from 'svelte/store';
-    import { jsPDF } from 'jspdf';
-    import { Document, Packer, Paragraph, TextRun, ImageRun } from 'docx';
-    import { saveAs } from 'file-saver';
-
-    let sections = writable([]);
-    let format = writable('pdf');
-
-    const addSection = () => {
-        sections.update(s => [...s, { type: 'header', content: '', size: 24, bold: true, alignment: 'left', fontFamily: 'Helvetica', highlightColor: '#ffffff' }]);
-    };
-
-    const removeSection = (index) => {
-        sections.update(s => s.filter((_, i) => i !== index));
-    };
-
-    const updateSection = (index, key, value) => {
-        sections.update(s => {
-            s[index][key] = value;
-            return s;
-        });
-    };
-
-    const generatePDF = async () => {
-        const doc = new jsPDF();
-        let y = 20;
-
-        const getImageDimensions = async (url) => {
-            return new Promise((resolve, reject) => {
-                const img = new Image();
-                img.onload = () => resolve({ width: img.width, height: img.height });
-                img.onerror = (err) => reject(err);
-                img.src = url;
-            });
-        };
-
-        for (let section of $sections) {
-            doc.setFontSize(section.size);
-            doc.setFont(section.fontFamily, section.bold ? 'bold' : 'normal');
-
-            let x;
-            switch (section.alignment) {
-                case 'center':
-                    x = doc.internal.pageSize.getWidth() / 2;
-                    break;
-                case 'right':
-                    x = doc.internal.pageSize.getWidth() - 20;
-                    break;
-                default:
-                    x = 20;
-                    break;
-            }
-
-            if (section.type === 'header' || section.type === 'paragraph') {
-                const lines = doc.splitTextToSize(section.content, doc.internal.pageSize.getWidth() - 40);
-                const lineHeight = section.size / doc.internal.scaleFactor;
-                const pageHeight = doc.internal.pageSize.height;
-
-                if (section.type === 'header') {
-                    const textWidth = doc.getStringUnitWidth(section.content) * section.size / doc.internal.scaleFactor;
-                    const textHeight = lineHeight * lines.length;
-                    doc.setFillColor(section.highlightColor);
-                    doc.rect(20, y - lineHeight + 2, doc.internal.pageSize.getWidth() - 40, textHeight, 'F');
-                }
-
-                lines.forEach(line => {
-                    if (y + lineHeight > pageHeight - 20) {
-                        doc.addPage();
-                        y = 20;
-                    }
-                    doc.text(line, x, y, { align: section.alignment });
-                    y += lineHeight;
-                });
-                y += 10; // Add some extra space between paragraphs
-            } else if (section.type === 'image' && section.content) {
-                try {
-                    const dimensions = await getImageDimensions(section.content);
-                    const imageWidth = doc.internal.pageSize.getWidth() - 40;
-                    const imageHeight = dimensions.height * imageWidth / dimensions.width;
-
-                    if (y + imageHeight > doc.internal.pageSize.height - 20) {
-                        doc.addPage();
-                        y = 20;
-                    }
-
-                    doc.addImage(section.content, 'JPEG', 20, y, imageWidth, imageHeight);
-                    y += imageHeight + 10; // Add some extra space after the image
-                } catch (error) {
-                    console.error('Error loading image:', error);
-                }
-            }
-        }
-
-        doc.save('document.pdf');
-    };
-
-    const fetchImage = async (url) => {
-        const response = await fetch(url);
-        const blob = await response.blob();
-        return blob.arrayBuffer();
-    };
-
-    const generateDOC = async () => {
-        const children = [];
-
-        for (let section of $sections) {
-            if (section.type === 'header' || section.type === 'paragraph') {
-                let runs = [
-                    new TextRun({
-                        text: section.content,
-                        bold: section.bold,
-                        size: section.size * 2,
-                        font: section.fontFamily
-                    })
-                ];
-
-                if (section.type === 'header') {
-                    children.push(new Paragraph({
-                        children: runs,
-                        alignment: section.alignment,
-                        shading: {
-                            fill: section.highlightColor
-                        },
-                        spacing: { after: 200 }
-                    }));
-                } else {
-                    children.push(new Paragraph({
-                        children: runs,
-                        alignment: section.alignment,
-                        spacing: { after: 200 }
-                    }));
-                }
-            } else if (section.type === 'image' && section.content) {
-                const imageBuffer = await fetchImage(section.content);
-                children.push(new Paragraph({
-                    children: [new ImageRun({ data: imageBuffer, transformation: { width: 600, height: 400 } })],
-                    spacing: { after: 200 },
-                }));
-            }
-        }
-
-        const doc = new Document({
-            sections: [{ properties: {}, children }],
-        });
-
-        const blob = await Packer.toBlob(doc);
-        saveAs(blob, "document.docx");
-    };
-
-    const generateDocument = () => {
-        if ($format === 'pdf') {
-            generatePDF();
-        } else {
-            generateDOC();
-        }
-    };
-</script>
-
-<style>
-    body {
-        font-family: 'Roboto', Arial, sans-serif;
-        background-color: #f0f0f0;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        height: 100vh;
-        margin: 0;
-        padding: 0;
+    let documents = [
+      { title: 'Template 1', src: 'https://picsum.photos/seed/picsum/200/300', description: 'A brief description of Template 1.' },
+      { title: 'Template 2', src: 'https://picsum.photos/seed/picsum/200/300', description: 'A brief description of Template 2.' },
+      { title: 'Template 3', src: 'https://picsum.photos/seed/picsum/200/300', description: 'A brief description of Template 3.' }
+    ];
+    let currentIndex = 0;
+  
+    function next() {
+      currentIndex = (currentIndex + 1) % documents.length;
     }
-    .container {
-        max-width: 800px;
-        padding: 20px;
-        background-color: #ffffff;
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-        border-radius: 8px;
+  
+    function prev() {
+      currentIndex = (currentIndex - 1 + documents.length) % documents.length;
     }
-    h2 {
-        color: #007bff;
-        text-align: center;
-        margin-bottom: 20px;
-    }
-    label {
-        display: block;
-        margin-top: 10px;
-        color: #555555;
-    }
-    input, textarea, select {
-        width: 100%;
-        padding: 10px;
-        margin-top: 5px;
-        border: 1px solid #cccccc;
-        border-radius: 4px;
-        font-size: 14px;
-    }
-    button {
-        margin-top: 20px;
-        padding: 10px 20px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 16px;
-        transition: background-color 0.3s ease;
-    }
-    .highlightColor, .boldCheck{
-        width:20px;
-        display:flex;
-        align-items: center;
-        justify-content: center;
-    }
-    button:hover {
-        background-color: #0056b3;
-    }
-    .section {
-        margin-bottom: 20px;
-        padding: 15px;
-        border: 1px solid #dddddd;
-        border-radius: 4px;
-        background-color: #fafafa;
-    }
-    .section-actions {
-        margin-top: 10px;
-        text-align: right;
-    }
-    .section-actions button {
-        background-color: #dc3545;
-        margin-left: 10px;
-        font-size: 14px;
-    }
-    .section-actions button:hover {
-        background-color: #bd2130;
-    }
-</style>
-<div class="card gap-16 items-center mx-auto max-w-screen-xl lg:grid lg:grid-cols-1 overflow-hidden rounded-lg">
-<main style="display: flex;
-    align-items: center;
-    justify-content: center; padding:15px;">
-    <div class="container">
-        <h2>Create Document</h2>
-
-        {#each $sections as section, index}
-            <div class="section">
-                <label>Type:</label>
-                <select bind:value={section.type} on:change={e => updateSection(index, 'type', e.target.value)}>
-                    <option value="header">Header</option>
-                    <option value="paragraph">Paragraph</option>
-                    <option value="image">Image</option>
-                </select>
-
-                {#if section.type === 'header' || section.type === 'paragraph'}
-                    <label>Content:</label>
-                    <textarea bind:value={section.content} on:input={e => updateSection(index, 'content', e.target.value)}></textarea>
-                {/if}
-
-                {#if section.type === 'image'}
-                    <label>Image URL:</label>
-                    <input type="text" bind:value={section.content} on:input={e => updateSection(index, 'content', e.target.value)} />
-                {/if}
-
-                <label>Font Size:</label>
-                <input type="number" min="1" max="72" bind:value={section.size} on:input={e => updateSection(index, 'size', e.target.value)} />
-
-                <label>Font Family:</label>
-                <select bind:value={section.fontFamily} on:change={e => updateSection(index, 'fontFamily', e.target.value)}>
-                    <option value="Helvetica">Helvetica</option>
-                    <option value="Times New Roman">Times New Roman</option>
-                    <option value="Arial">Arial</option>
-                    <option value="Courier New">Courier New</option>
-                    <option value="Georgia">Georgia</option>
-                </select>
-
-                {#if section.type === 'header'}
-                    <label>Highlight Color:</label>
-                    <input class="highlightColor" type="color" bind:value={section.highlightColor} on:input={e => updateSection(index, 'highlightColor', e.target.value)} />
-                {/if}
-
-                <label>Bold:</label>
-                <input class="boldCheck" type="checkbox" bind:checked={section.bold} on:change={e => updateSection(index, 'bold', e.target.checked)} />
-
-                <label>Alignment:</label>
-                <select bind:value={section.alignment} on:change={e => updateSection(index, 'alignment', e.target.value)}>
-                    <option value="left">Left</option>
-                    <option value="center">Center</option>
-                    <option value="right">Right</option>
-                </select>
-
-                <div class="section-actions">
-                    <button on:click={() => removeSection(index)}>Remove Section</button>
+  </script>
+  
+  <div class="card gap-16 items-center mx-auto max-w-screen-xl lg:grid lg:grid-cols-1 overflow-hidden rounded-lg">
+    <div class="w-full h-full dark:text-white flex flex-col">
+      <h1 class="text-center text-2xl font-bold mb-4">Devstar Document Templates Module</h1>
+      <div class="flex">
+        <!-- Left Sidebar -->
+        <div class="w-[15%] border border-yellow-100 flex flex-col items-center">
+          <nav>
+            <ul>
+              <li><button class="nav-btn">1</button></li>
+              <li><button class="nav-btn">2</button></li>
+              <li><button class="nav-btn">3</button></li>
+              <li><button class="nav-btn">4</button></li>
+              <li><button class="nav-btn">5</button></li>
+            </ul>
+          </nav>
+        </div>
+  
+        <!-- Carousel Section -->
+        <div class="w-[70%] flex flex-col gap-10 border border-yellow-100">
+          <section class="template-section">
+            <h2 class="text-xl font-bold mb-6 text-gray-800">Templates</h2>
+            <div class="carousel flex overflow-x-auto gap-4">
+              {#each documents as doc, index}
+                <div class="template-card flex flex-col items-center relative">
+                  <div class="group relative w-48 h-60 rounded-lg overflow-hidden bg-white shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:-translate-y-1">
+                    <img class="w-full h-full object-cover group-hover:opacity-50 transition duration-300 ease-in-out" src={doc.src} alt={doc.title}>
+                    <div class="absolute inset-0 px-4 py-2 bottom-0 opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out bg-gradient-to-b from-gray-900 to-transparent">
+                      <h3 class="text-lg font-bold text-white mb-2">{doc.title}</h3>
+                      <p class="text-gray-300">{doc.description}</p>
+                    </div>
+                  </div>
+                  <a href={doc.src} download={doc.title} class="download-btn mt-4 flex items-center" aria-label="Download Template {doc.title}">
+                    Download <i class="fa fa-download ml-2"></i>
+                  </a>
                 </div>
+              {/each}
             </div>
-        {/each}
-
-        <button on:click={addSection}>Add Section</button>
-
-        <label for="format">Select Format:</label>
-        <select id="format" bind:value={$format}>
-            <option value="pdf">PDF</option>
-            <option value="doc">DOC</option>
-        </select>
-
-        <button on:click={generateDocument}>Generate Document</button>
+          </section>
+        </div>
+  
+        <!-- Right Sidebar -->
+        <div class="w-[15%] border border-yellow-100 flex flex-col items-center">
+          <div class="search-bar mt-4">
+            <input type="text" placeholder="Search..." class="w-full p-2 border rounded" aria-label="Search Templates"/>
+          </div>
+        </div>
+      </div>
     </div>
-</main>
-</div>
+  </div>
+  
+  <style>
+    .template-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .carousel {
+      display: flex;
+      align-items: center;
+    }
+    .template-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 1rem;
+      position: relative;
+    }
+    .group {
+      width: 200px;
+      height: 300px;
+    }
+    .carousel-button {
+      padding: 0.5rem 1rem;
+      background-color: #1f2937;
+      color: #fff;
+      border-radius: 0.25rem;
+      transition: background-color 0.3s ease-in-out;
+    }
+    .carousel-button:hover {
+      background-color: #374151;
+    }
+    .nav-btn {
+      padding: 0.5rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #1f2937;
+    }
+    .nav-btn:hover {
+      background-color: #f0f0f0;
+    }
+    .search-bar {
+      margin-top: 1rem;
+    }
+    .download-btn {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border-radius: 5px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .download-btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
