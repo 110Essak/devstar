@@ -1,5 +1,7 @@
 <script>
     import { saveAs } from 'file-saver';
+    import { goto } from '$app/navigation';
+    import jsPDF from 'jspdf';
 
     let slideContainer;
 
@@ -18,11 +20,21 @@
     }
 
     async function downloadTemplate(id) {
-        // Generate or fetch the template file (e.g., as a Blob)
-        // Here, we're simulating it with a dummy Blob for demonstration purposes.
         const templateContent = `Template Content for Template ${id}`;
         const blob = new Blob([templateContent], { type: 'text/plain;charset=utf-8' });
         saveAs(blob, `Template_${id}.txt`);
+    }
+
+    function downloadPDF(id) {
+        const doc = new jsPDF();
+        const templateContent = `Template Content for Template ${id}`;
+
+        doc.text(templateContent, 10, 10);
+        doc.save(`Template_${id}.pdf`);
+    }
+
+    function editTemplate(id) {
+        goto(`/edit/${id}`);
     }
 </script>
 
@@ -56,8 +68,8 @@
                                     </div>
                                     <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out">
                                         <div class="flex flex-col space-y-2">
-                                            <button class="bg-blue-500 text-white px-4 py-2 rounded-md w-24 text-center">Edit</button>
-                                            <button class="bg-green-500 text-white px-4 py-2 rounded-md w-24 text-center">PDF</button>
+                                            <button on:click={() => editTemplate(i)} class="bg-blue-500 text-white px-4 py-2 rounded-md w-24 text-center">Edit</button>
+                                            <button on:click={() => downloadPDF(i)} class="bg-green-500 text-white px-4 py-2 rounded-md w-24 text-center">PDF</button>
                                             <button class="bg-red-500 text-white px-4 py-2 rounded-md w-24 text-center">Word</button>
                                         </div>
                                     </div>
