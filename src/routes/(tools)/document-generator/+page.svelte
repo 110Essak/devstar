@@ -52,6 +52,7 @@
                                             <button class="bg-red-500 text-white px-4 py-2 rounded-md w-24 text-center">Word</button>
                                         </div>
                                     </div>
+                                    <button class="download-btn absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out">Download</button>
                                 </div>
                             {/each}
                         </div>
@@ -82,5 +83,18 @@
 
     .next-btn {
         right: 2%;
+    }
+
+    .download-btn {
+        background-color: #f59e0b;
+        color: white;
+        border: none;
+        cursor: pointer;
+        font-size: 0.875rem; 
+        padding: 0.5rem 1rem; 
+    }
+
+    .download-btn:hover {
+        background-color: #d97706;
     }
 </style>
