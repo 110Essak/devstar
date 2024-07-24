@@ -1,4 +1,6 @@
 <script>
+    import { saveAs } from 'file-saver';
+
     let slideContainer;
 
     function scrollLeft() {
@@ -13,6 +15,14 @@
             left: 300,
             behavior: 'smooth'
         });
+    }
+
+    async function downloadTemplate(id) {
+        // Generate or fetch the template file (e.g., as a Blob)
+        // Here, we're simulating it with a dummy Blob for demonstration purposes.
+        const templateContent = `Template Content for Template ${id}`;
+        const blob = new Blob([templateContent], { type: 'text/plain;charset=utf-8' });
+        saveAs(blob, `Template_${id}.txt`);
     }
 </script>
 
@@ -38,7 +48,6 @@
                     <div class="flex overflow-x-auto gap-4 relative">
                         <button on:click={scrollLeft} class="prev-btn absolute left-2 top-1/2 transform -translate-y-1/2 bg-blue-500 hover:bg-blue-700 text-white px-3 py-2 rounded-md z-10">Prev</button>
                         <div bind:this={slideContainer} class="flex overflow-hidden">
-                            <!-- Add your template items here -->
                             {#each [1, 2, 3, 4, 5, 6] as i (i)}
                                 <div class="group relative w-54 h-70 rounded-lg overflow-hidden bg-gray-900 cursor-pointer shadow-lg hover:shadow-xl transition duration-300 ease-in-out transform hover:-translate-y-1 flex-shrink-0 mx-2">
                                     <img class="w-full h-full object-cover group-hover:opacity-50 transition duration-300 ease-in-out" src="https://picsum.photos/seed/picsum/200/300" alt="Template {i}">
@@ -52,7 +61,7 @@
                                             <button class="bg-red-500 text-white px-4 py-2 rounded-md w-24 text-center">Word</button>
                                         </div>
                                     </div>
-                                    <button class="download-btn absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out">Download</button>
+                                    <button on:click={() => downloadTemplate(i)} class="download-btn absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out">Download</button>
                                 </div>
                             {/each}
                         </div>
