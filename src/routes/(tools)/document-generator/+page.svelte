@@ -2,6 +2,7 @@
     import { saveAs } from 'file-saver';
     import { goto } from '$app/navigation';
     import jsPDF from 'jspdf';
+    import { Document, Packer, Paragraph, TextRun } from 'docx';
 
     let slideContainer;
 
@@ -31,6 +32,27 @@
 
         doc.text(templateContent, 10, 10);
         doc.save(`Template_${id}.pdf`);
+    }
+
+    async function downloadWord(id) {
+        const templateContent = `Template Content for Template ${id}`;
+        const doc = new Document({
+            sections: [
+                {
+                    properties: {},
+                    children: [
+                        new Paragraph({
+                            children: [
+                                new TextRun(templateContent),
+                            ],
+                        }),
+                    ],
+                },
+            ],
+        });
+
+        const blob = await Packer.toBlob(doc);
+        saveAs(blob, `Template_${id}.docx`);
     }
 
     function editTemplate(id) {
@@ -70,7 +92,7 @@
                                         <div class="flex flex-col space-y-2">
                                             <button on:click={() => editTemplate(i)} class="bg-blue-500 text-white px-4 py-2 rounded-md w-24 text-center">Edit</button>
                                             <button on:click={() => downloadPDF(i)} class="bg-green-500 text-white px-4 py-2 rounded-md w-24 text-center">PDF</button>
-                                            <button class="bg-red-500 text-white px-4 py-2 rounded-md w-24 text-center">Word</button>
+                                            <button on:click={() => downloadWord(i)} class="bg-red-500 text-white px-4 py-2 rounded-md w-24 text-center">Word</button>
                                         </div>
                                     </div>
                                     <button on:click={() => downloadTemplate(i)} class="download-btn absolute bottom-2 left-1/2 transform -translate-x-1/2 bg-yellow-500 text-white px-2 py-1 rounded-md opacity-0 group-hover:opacity-100 transition duration-300 ease-in-out">Download</button>
