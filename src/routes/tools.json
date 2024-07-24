@@ -112,24 +112,56 @@
         "description": "Document generator enables users to create dynamic documents with headers , paragraphs and images .Users can customize text (font size, family , boldness , alignment) and highlight headers . Export option includes PDF and DOC formats using jsPDF and docx , with file-saver for downloads",
         "contributors": [
             {
-                "name": "Karan Rajkumar Jain",
-                "githubId": "karanjain09"
+                "name": "Ankur Dome",
+                "githubId": "ankurdome"
             },
             {
-                "name": "Asmita Agre",
-                "githubId": "Asmitaagre46"
+                "name": "Chaitanya Chavhan",
+                "githubId": "Cosmo784"
             },
             {
-                "name": "Maimuna Khatoon",
-                "githubId": "maimuna01"
+                "name": "Chintaluri Sai Srinivas",
+                "githubId": "SaiSrinivas13"
             },
             {
-                "name": "Vankadari Naga Pallavi",
-                "githubId": "Pallavi287"
+                "name": "Daniel Mohan kavuri",
+                "githubId": "DanielMohan18"
             },
             {
-                "name": "Rajendra Kumar ",
-                "githubId": "rajendrakumar360"
+                "name": "Essak Mahesh Dasari",
+                "githubId": "110Essak"
+            },
+            {
+                "name": "Girish Gokul Lohkare",
+                "githubId": "Girish170304"
+            },
+            {
+                "name": "Harsh Vardhan Joshi",
+                "githubId": "hvjoshi9"
+            },
+            {
+                "name": "ILyas Sayyed",
+                "githubId": "MrPorsche"
+            },
+            {
+                "name": "Kalyani Umesh Hirulkar",
+                "githubId": "PlaySwim"
+            },
+            {
+                "name": "Khushboo Meshram",
+                "githubId": "khushboormeshram"
+            },
+            {
+                "name": "Mohammed Rayyaan",
+                "githubId": "Rayyaan23"
+            },
+            {
+                "name": "Utkarsh Naresh Mhatre",
+                "githubId": "Utkarshmhatre"
+            },
+            {
+                "name": "Vansh Kumar Kesarwani",
+                "githubId": "@iamvansh02"
             },
             {
                 "name": "Ashwani Kumar Singh",
@@ -148,9 +180,9 @@
             }
         ]
     },
-    "gradient-generator": {
+    "Gradient-generator": {
         "name": "Gradient Generator",
-        "link": "/gradient-generator",
+        "link": "/Gradient-generator",
         "description": "The Gradient Generator is a tool for Developers which allows you to create Gradient between 2 Colors and Copy its CSS Output.",
         "contributors": [
             {
